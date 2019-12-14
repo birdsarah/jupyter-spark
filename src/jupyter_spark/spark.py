@@ -29,6 +29,10 @@ class Spark(LoggingConfigurable):
     on the fly.
     """
     url = Unicode(
+        # If could configure this e.g. to 4041, could work 
+        # with multiple spark applications. This available in the notebook
+        # from `spark.conf.get('spark.driver.appUIAddress')` and then
+        # parsing out the port.
         'http://localhost:4040',
         help='The URL of Spark API',
     ).tag(config=True)
