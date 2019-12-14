@@ -16,18 +16,28 @@ class SparkHandler(IPythonHandler):
         URLs in the response content for HTML responses or return
         the verbatim response.
         """
-        http = httpclient.AsyncHTTPClient()
-        url = self.spark.backend_url(self.request)
-        self.spark.log.debug('Fetching from Spark %s', url)
-        http.fetch(url, self.handle_response)
-        try:
-            response = await http.fetch(url)
-        except Exception as e:
-            print("Spark Notebook Extension Error", e)
+        if self.request.uri.startswith('/spark-configure'):
+            self.configure_spark()
         else:
-            self.handle_response(response)
+            http = httpclient.AsyncHTTPClient()
+            url = self.spark.backend_url(self.request)
+            self.spark.log.debug('Fetching from Spark %s', url)
+            http.fetch(url, self.handle_response)
+            try:
+                response = await http.fetch(url)
+            except Exception as e:
+                print("Spark Notebook Extension Error", e)
+            else:
+                self.handle_response(response)
 
-
+    def configure_spark(self):
+       """
+       Crude reconfiguring based on hard-coded url that needs to be entered manually.
+       e.g. http://localhost:11889/spark-configure?spark_ui_port=4041
+       """
+       spark_ui_port = self.request.query_arguments.get('spark_ui_port', ['4040'])
+       spark_ui_port = int(spark_ui_port[0])
+       self.spark.url = 'http://localhost:{spark_ui_port}'.format(spark_ui_port=spark_ui_port)
 
 
     def handle_response(self, response):
